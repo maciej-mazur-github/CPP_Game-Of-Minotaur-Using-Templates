@@ -8,16 +8,22 @@ using namespace std;
 
 
 template <class T>
-class treasure
+class Treasure
 {
 	T value;
-	char name[20];
+	string name;
 public:
-	treasure(const char* n, T v) : value(v) { strcpy_s(name, n); }
+	Treasure(string name, T value) 
+		: name(name), value(value) {}
 
-	friend ostream& operator<<(ostream& input, const treasure t)
+	string getName()
 	{
-		cout << t.name << " of value " << t.value << " coins." << endl;
-		return input;
+		return name;
+	}
+
+	friend ostream& operator<<(ostream& out, const Treasure treasure)
+	{
+		cout << treasure.name << " of value " << treasure.value << " coins." << endl;
+		return out;
 	}
 };
