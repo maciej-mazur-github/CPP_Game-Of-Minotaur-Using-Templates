@@ -15,17 +15,17 @@ class TreasureChest
 	int itemCounter;
 public:
 	TreasureChest(string description)
-		: itemCounter(0) {}
-	void encounter(Treasure<T>* treasurePtr);
+		: itemCounter(0), description(description) {}
+	void encounterTreasure(Treasure<T>* treasurePtr);
 	void removeTreasure(int index);
 	void removeTreasure(string name);
 	void showTreasures();
 	void replaceTreasure(Treasure<T>* newTreasurePtr);
+	bool hasItem(Treasure<T>* treasurePtr);
 
 private:
-	int existingTreasureChoice();
+	int existingTreasureChoice(string& existingTreasureName);
 	void replaceTreasure(int existingTreasureIndex, Treasure<T>* newTreasurePtr);
-	bool hasItem(Treasure<T>* treasurePtr);
 	int hasItem(string treasureName);
 	void addTreasure(Treasure<T>* treasurePtr);
 	bool verifyAnswer();
@@ -39,7 +39,7 @@ bool TreasureChest<T>::hasItem(Treasure<T>* treasurePtr)
 {
 	for (int i = 0; i < itemCounter; i++)
 	{
-		if (treasureArray[i].getName().compare(treasurePtr->getName()) == 0)     //  if inspected Treasure name equals the compared Treasure name
+		if ((*treasureArray[i]).getName().compare(treasurePtr->getName()) == 0)     //  if inspected Treasure name equals the compared Treasure name
 			return true;
 	}
 
@@ -51,13 +51,13 @@ int TreasureChest<T>::hasItem(string treasureName)
 {
 	for (int i = 0; i < itemCounter; i++)
 	{
-		if (treasureArray[i].getName().compare(treasureName) == 0)
+		if ((*treasureArray[i]).getName().compare(treasureName) == 0)
 		{
 			return i;       // position in array at which the found treasure was found
 		}
-
-		return arraySize + 1;    // some constant number from outside of available array range
 	}
+
+	return arraySize + 1;    // some constant number from outside of available array range
 }
 
 
@@ -83,13 +83,13 @@ bool TreasureChest<T>::verifyAnswer()
 }
 
 template <class T>
-void TreasureChest<T>::encounter(Treasure<T>* treasurePtr)
+void TreasureChest<T>::encounterTreasure(Treasure<T>* treasurePtr)
 {
-	cout << "You just encountered: " << *treasurePtr;
+	cout << "\n\nYou just encountered: " << *treasurePtr;
 
 	if (hasItem(treasurePtr))
 	{
-		cout << "\n\tBut you have already got that in your accessory so you won't pick that again.";
+		cout << " But you have already got that in your accessory so you won't pick that again.";
 		return;
 	}
 	
@@ -106,7 +106,7 @@ void TreasureChest<T>::encounter(Treasure<T>* treasurePtr)
 	{
 		cout << "The chest is already full. This is what we have now:\n\n";
 		this->showTreasures();
-		cout << "Do you want any of already posessed items to be replaced or you would rather like to leave this new item alone?: ";
+		cout << "Do you want any of already posessed items to be replaced or would you rather like to leave this new item alone? y/n : ";
 		
 		if (!verifyAnswer())
 		{
@@ -121,18 +121,15 @@ void TreasureChest<T>::encounter(Treasure<T>* treasurePtr)
 
 
 	addTreasure(treasurePtr);
-
-	cout << "\n\nNow we have:" << endl;
 	showTreasures();
 	
 
 }
 
 template <class T>
-int TreasureChest<T>::existingTreasureChoice()
+int TreasureChest<T>::existingTreasureChoice(string& existingTreasureName)
 {
 	cout << "\nChoose existing treasure (enter its name here): ";
-	string existingTreasureName;
 	cin >> existingTreasureName;
 	return hasItem(existingTreasureName);
 }
@@ -151,15 +148,18 @@ void TreasureChest<T>::replaceTreasure(Treasure<T>* newTreasurePtr)
 	cout << "You currently have the following treasures in your chest:\n";
 	showTreasures();
 	cout << "\nWhich one of already posessed treasures would you like to replace with the encountered one? ";
-	int foundPosition = existingTreasureChoice();
+	string nameChoice;
+
+	int foundPosition = existingTreasureChoice(nameChoice);
 
 	if (foundPosition > itemCounter)
 	{
-		cout << existingTreasureName << " treasure not found in your current treasure chest. No changes made to the existing treasure chest then..." << endl;
+		cout << nameChoice << " treasure not found in your current treasure chest. No changes made to the existing treasure chest then..." << endl;
 	}
 	else
 	{
-		replaceTreasure(foundPosition, newTreasure);
+		replaceTreasure(foundPosition, newTreasurePtr);
+		cout << nameChoice << " successfully replaced with " << (*newTreasurePtr).getName() << endl;
 		showTreasures();
 	}
 }
@@ -173,7 +173,7 @@ void TreasureChest<T>::showTreasures()
 
 	for (int i = 0; i < itemCounter; i++)
 	{
-		cout << i << ". " << *treasureArray[i] << endl;
+		cout << "\tTreasure #" << i + 1 << ": " << *treasureArray[i] << endl;
 	}
 
 	cout << "\n\n";
@@ -186,6 +186,7 @@ void TreasureChest<T>::addTreasure(Treasure<T>* newTreasurePtr)
 {
 	treasureArray[itemCounter] = newTreasurePtr;
 	itemCounter++;
+	cout << newTreasurePtr->getName() << " added successfully" << endl;
 }
 
 
@@ -198,6 +199,8 @@ void TreasureChest<T>::removeTreasure(int index)
 		return;
 	}
 
+	string removedTreasureName = (*treasureArray[index]).getName();
+
 	for (int i = index; i < itemCounter - 1; i++)
 	{
 		treasureArray[i] = treasureArray[i + 1];
@@ -206,6 +209,7 @@ void TreasureChest<T>::removeTreasure(int index)
 	treasureArray[itemCounter - 1] = nullptr;
 	itemCounter--;
 
+	cout << "After removal of " << removedTreasureName << ":";
 	showTreasures();
 }
 
@@ -214,6 +218,12 @@ template <class T>
 void TreasureChest<T>::removeTreasure(string name)
 {
 	int foundPosition = hasItem(name);
+
+	if (foundPosition == arraySize + 1)
+	{
+		cout << "\"" << name << "\" not found in the chest, hence no removal performed" << endl;
+	}
+
 	removeTreasure(foundPosition);
 }
 
